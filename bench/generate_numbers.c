@@ -1,29 +1,48 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
+#include "geracao_numeros.h"
 
-void generateRandomNumbers(int count, const char *filename) {
-    FILE *file = fopen(filename, "w");
-    if (file == NULL) {
-        printf("Erro ao abrir o arquivo %s\n", filename);
-        exit(1);
+void gerar_numeros_aleatorios(int qtd_numeros, const char *nome_arquivo) {
+    FILE *arquivo = fopen(nome_arquivo, "w");
+    if (arquivo == NULL) {
+        perror("Erro ao abrir arquivo");
+        exit(EXIT_FAILURE);
     }
 
     srand(time(NULL));
-    for (int i = 0; i < count; i++) {
-        int num = rand() % 1000;
-        fprintf(file, "%d ", num);
+    for (int i = 0; i < qtd_numeros; i++) {
+        int numero = rand() % 1000 + 1;
+        fprintf(arquivo, "%d ", numero);
     }
 
-    fclose(file);
+    fclose(arquivo);
 }
 
-int main() {
-    int count;
-    printf("Digite a quantidade de números inteiros a serem gerados: ");
-    scanf("%d", &count);
+int *ler_numeros_do_arquivo(const char *nome_arquivo) {
+    FILE *arquivo = fopen(nome_arquivo, "r");
+    if (arquivo == NULL) {
+        perror("Erro ao abrir arquivo");
+        exit(EXIT_FAILURE);
+    }
 
-    generateRandomNumbers(count, "random_numbers.txt");
+    int tamanho = 0;
+    int numero;
+    while (fscanf(arquivo, "%d", &numero) != EOF) {
+        tamanho++;
+    }
 
-    return 0;
+    int *numeros = (int *)malloc(tamanho * sizeof(int));
+    if (numeros == NULL) {
+        perror("Erro ao alocar memória");
+        exit(EXIT_FAILURE);
+    }
+
+    rewind(arquivo);
+    for (int i = 0; i < tamanho; i++) {
+        fscanf(arquivo, "%d", &numeros[i]);
+    }
+
+    fclose(arquivo);
+    return numeros;
 }
+
+#endif
