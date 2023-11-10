@@ -1,102 +1,69 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
+#include "algoritmos_busca.h"
 
-int linearSearch(const char *filename, int key) {
-    FILE *file = fopen(filename, "r");
-    if (file == NULL) {
-        printf("Erro ao abrir o arquivo %s\n", filename);
-        exit(1);
-    }
-
-    int num, position = 0;
-    clock_t start = clock();
-
-    while (fscanf(file, "%d", &num) != EOF) {
-        if (num == key) {
-            fclose(file);
-            clock_t end = clock();
-            printf("Tempo de busca linear: %f segundos\n", (double)(end - start) / CLOCKS_PER_SEC);
-            return position;
+int busca_linear(const int *lista, int tamanho, int alvo, double *tempo) {
+    for (int i = 0; i < tamanho; i++) {
+        if (lista[i] == alvo) {
+            *tempo = i;  // Armazena o índice onde o elemento foi encontrado
+            return i;  // Retorna a posição do elemento se for encontrado
         }
-        position++;
     }
-
-    fclose(file);
-    return -1;
+    *tempo = -1;  // Atualiza o tempo com -1 se o elemento não for encontrado
+    return -1;  // Retorna -1 se o elemento não for encontrado
 }
 
-// Função para fazer a busca sentinela
-int sentinelSearch(const char *filename, int key) {
-    FILE *file = fopen(filename, "r");
-    if (file == NULL) {
-        printf("Erro ao abrir o arquivo %s\n", filename);
-        exit(1);
+
+int busca_sentinela(int *lista, int tamanho, int alvo, double *tempo) {
+    int *lista_modificavel = malloc(tamanho * sizeof(int)); // Cria uma cópia modificável
+    if (lista_modificavel == NULL) {
+        perror("Erro ao alocar memória");
+        exit(EXIT_FAILURE);
+    }
+    
+    // Copia os elementos para a lista modificável
+    for (int i = 0; i < tamanho; i++) {
+        lista_modificavel[i] = lista[i];
     }
 
-    int num, position = 0;
-    int sentinel = 0;
-    clock_t start = clock();
+    int ultimo = lista_modificavel[tamanho - 1];  // Guarda o último elemento
+    lista_modificavel[tamanho - 1] = alvo;  // Substitui o último elemento pelo alvo
 
-    while (fscanf(file, "%d", &num) != EOF) {
-        if (num == key) {
-            fclose(file);
-            clock_t end = clock();
-            printf("Tempo de busca sentinela: %f segundos\n", (double)(end - start) / CLOCKS_PER_SEC);
-            return position;
-        }
-        position++;
+    int i = 0;
+    while (lista_modificavel[i] != alvo) {
+        i++;
     }
 
-    fclose(file);
-    return -1;
+    lista_modificavel[tamanho - 1] = ultimo;  // Restaura o último elemento
+
+    if (i < tamanho - 1 || lista_modificavel[tamanho - 1] == alvo) {
+        *tempo = (i != tamanho - 1) ? i : -1;  // Armazena o índice onde o elemento foi encontrado ou -1 se não encontrado
+        free(lista_modificavel); // Libera a lista modificável
+        return (i != tamanho - 1) ? i : -1;  // Retorna a posição do elemento se for encontrado, caso contrário -1
+    }
+
+    *tempo = -1;  // Atualiza o tempo com -1 se o elemento não for encontrado
+    free(lista_modificavel); // Libera a lista modificável
+    return -1;  // Retorna -1 se o elemento não for encontrado
 }
 
-// Função para fazer a busca binária
-int binarySearch(const char *filename, int key) {
-    FILE *file = fopen(filename, "r");
-    if (file == NULL) {
-        printf("Erro ao abrir o arquivo %s\n", filename);
-        exit(1);
-    }
 
-    int num, position = 0;
-    int low = 0;
-    int high = 0;
-    int mid = 0;
-    int found = 0;
-    clock_t start = clock();
 
-    while (fscanf(file, "%d", &num) != EOF) {
-        position++;
-        high = position;
-    }
-    rewind(file);
 
-    while (low <= high && !found) {
-        mid = (low + high) / 2;
-
-        for (int i = 0; i < mid; i++) {
-            fscanf(file, "%d", &num);
+int busca_binaria(const int *lista, int tamanho, int alvo, double *tempo) {
+    int inicio = 0;
+    int fim = tamanho - 1;
+    while (inicio <= fim) {
+        int meio = inicio + (fim - inicio) / 2;
+        if (lista[meio] == alvo) {
+            *tempo = meio;  // Armazena o índice onde o elemento foi encontrado
+            return meio;  // Retorna a posição do elemento se for encontrado
         }
-
-        if (num == key) {
-            found = 1;
-        } else if (num < key) {
-            low = mid + 1;
+        if (lista[meio] < alvo) {
+            inicio = meio + 1;
         } else {
-            high = mid - 1;
+            fim = meio - 1;
         }
     }
-
-    fclose(file);
-
-    if (found) {
-        clock_t end = clock();
-        printf("Tempo de busca binária: %f segundos\n", (double)(end - start) / CLOCKS_PER_SEC);
-        return mid - 1;
-    } else {
-        return -1;
-    }
+    *tempo = -1;  // Atualiza o tempo com -1 se o elemento não for encontrado
+    return -1;  // Retorna -1 se o elemento não for encontrado
 }
 
